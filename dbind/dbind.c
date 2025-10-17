@@ -23,7 +23,6 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include "atspi/atspi-gmain.h"
 #include "config.h"
 #include "dbind/dbind.h"
 

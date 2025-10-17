@@ -11,7 +11,6 @@ atspi_sources = [
   'atspi-document.c',
   'atspi-editabletext.c',
   'atspi-event-listener.c',
-  'atspi-gmain.c',
   'atspi-hyperlink.c',
   'atspi-hypertext.c',
   'atspi-image.c',
@@ -43,7 +42,6 @@ atspi_headers = [
   'atspi-document.h',
   'atspi-editabletext.h',
   'atspi-event-listener.h',
-  'atspi-gmain.h',
   'atspi-hyperlink.h',
   'atspi-hypertext.h',
   'atspi-image.h',
@@ -64,6 +62,10 @@ atspi_headers = [
 if x11_dep.found()
   atspi_sources += ['atspi-device-x11.c']
   atspi_headers += ['atspi-device-x11.h']
+endif
+
+if not dbus_glib_dep.found()
+  atspi_sources += ['atspi-gmain.c']
 endif
 
 atspi_includedir = join_paths(get_option('prefix'), get_option('includedir'), 'at-spi-2.0', 'atspi')
@@ -101,13 +103,13 @@ atspi = library('atspi', atspi_sources + atspi_enums + atspi_marshals,
                        version: soversion,
                        soversion: soversion.split('.')[0],
                        include_directories: [ root_inc, registryd_inc ],
-                       dependencies: [ libdbus_dep, gobject_dep, gio_dep, dbind_dep, x11_deps, ],
+                       dependencies: [ libdbus_dep, dbus_glib_dep, gobject_dep, gio_dep, dbind_dep, x11_deps, ],
                        install: true)
 
 atspi_dep = declare_dependency(link_with: atspi,
                                sources: atspi_enum_h,
                                include_directories: root_inc,
-                               dependencies: [ libdbus_dep, gobject_dep, ])
+                               dependencies: [ libdbus_dep, dbus_glib_dep, gobject_dep, ])
 
 if have_gir
   gir_sources = atspi_sources + atspi_enums + atspi_headers

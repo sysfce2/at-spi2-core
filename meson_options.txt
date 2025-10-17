@@ -45,3 +45,7 @@ option('atk_only',
        type: 'boolean',
        value: false)
 option('python', type : 'string', value : 'python3')
+option('dbus_glib',
+       description: 'Use dbus-glib for main loop integration',
+       type: 'feature',
+       value: 'disabled')

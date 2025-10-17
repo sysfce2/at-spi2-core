@@ -50,4 +50,12 @@ gchar *atspi_role_get_name (AtspiRole role);
 gchar *atspi_role_get_localized_name (AtspiRole role);
 
 void atspi_get_version (gint *major, gint *minor, gint *micro);
+
+void
+atspi_dbus_connection_setup_with_g_main (DBusConnection *connection,
+                                         GMainContext *context);
+
+void
+atspi_dbus_server_setup_with_g_main (DBusServer *server,
+                                     GMainContext *context);
 G_END_DECLS

@@ -32,7 +32,9 @@
 #ifdef HAVE_X11
 #include "X11/Xlib.h"
 #endif
-#include "atspi-gmain.h"
+#ifdef HAVE_DBUS_GLIB
+#include "dbus/dbus-glib-lowlevel.h"
+#endif
 #include <ctype.h>
 #include <locale.h>
 #include <stdio.h>
@@ -2251,3 +2253,19 @@ _atspi_key_is_on_keypad (gint keycode)
       return FALSE;
     }
 }
+
+#ifdef HAVE_DBUS_GLIB
+void
+atspi_dbus_connection_setup_with_g_main (DBusConnection *connection,
+                                         GMainContext *context)
+{
+  return dbus_connection_setup_with_g_main (connection, context);
+}
+
+void
+atspi_dbus_server_setup_with_g_main (DBusServer *server,
+                                     GMainContext *context)
+{
+  return dbus_server_setup_with_g_main (server, context);
+}
+#endif

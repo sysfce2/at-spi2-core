@@ -124,6 +124,7 @@ at_spi_conf.set_quoted('ATSPI_LOCALEDIR', join_paths(atspi_datadir, 'locale'))
 
 # Dependencies
 libdbus_req_version = '>= 1.5'
+dbus_glib_req_version = '>= 0.104'
 glib_req_version = '>= 2.67.4'
 gobject_req_version = '>= 2.0.0'
 gmodule_req_version = '>= 2.0.0'
@@ -132,6 +133,8 @@ libxml_req_version = '>= 2.9.1'
 
 if not get_option('atk_only')
   libdbus_dep = dependency('dbus-1', version: libdbus_req_version)
+  dbus_glib_dep = dependency('dbus-glib-1', version: dbus_glib_req_version, required: get_option('dbus_glib'))
+  at_spi_conf.set('HAVE_DBUS_GLIB', dbus_glib_dep.found())
 endif
 
 glib_dep = dependency('glib-2.0', version: glib_req_version)
