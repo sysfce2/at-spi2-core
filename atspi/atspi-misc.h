@@ -25,6 +25,11 @@
 
 #pragma once
 
+#include <dbus/dbus.h>
+#include <glib.h>
+
+#include "atspi-constants.h"
+
 G_BEGIN_DECLS
 
 int atspi_init (void);
