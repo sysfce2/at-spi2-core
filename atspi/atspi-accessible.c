@@ -1841,6 +1841,9 @@ atspi_accessible_get_process_id (AtspiAccessible *accessible, GError **error)
       return -1;
     }
 
+  if (accessible->parent.app->pid)
+    return accessible->parent.app->pid;
+
   message = dbus_message_new_method_call ("org.freedesktop.DBus",
                                           "/org/freedesktop/DBus",
                                           "org.freedesktop.DBus",
@@ -1862,6 +1865,10 @@ atspi_accessible_get_process_id (AtspiAccessible *accessible, GError **error)
       g_set_error_literal (error, ATSPI_ERROR, ATSPI_ERROR_IPC, "Process is defunct");
       dbus_error_free (&d_error);
     }
+
+  if (accessible->parent.app)
+    accessible->parent.app->pid = pid;
+
   return pid;
 }
 

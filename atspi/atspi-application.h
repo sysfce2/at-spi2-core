@@ -52,6 +52,7 @@ struct _AtspiApplication
   gchar *toolkit_version;
   gchar *atspi_version;
   struct timeval time_added;
+  pid_t pid;
 };
 
 typedef struct _AtspiApplicationClass AtspiApplicationClass;
