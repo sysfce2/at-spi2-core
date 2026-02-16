@@ -27,6 +27,13 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XInput2.h>
+#ifdef HAVE_XRES
+#include <X11/extensions/XRes.h>
+#endif
+
+#ifdef HAVE_XRES
+static gboolean poll_mouse_idle (gpointer data);
+#endif
 
 #define ATSPI_VIRTUAL_MODIFIER_MASK 0x0000f000
 
@@ -44,6 +51,8 @@ struct _AtspiDeviceX11Private
   gboolean keyboard_grabbed;
   unsigned int numlock_physical_mask;
   AtspiEventListener *event_listener;
+  gboolean pointer_monitor_enabled;
+  AtspiPoint last_mouse_pos;
 };
 
 GObjectClass *device_x11_parent_class;
@@ -866,12 +875,187 @@ atspi_device_x11_get_keysym_modifier (AtspiDevice *device, guint keysym)
 static AtspiDeviceCapability
 atspi_device_x11_get_capabilities (AtspiDevice *device)
 {
-  return ATSPI_DEVICE_CAP_KB_MONITOR | ATSPI_DEVICE_CAP_KB_GRAB | ATSPI_DEVICE_CAP_POINTER_SYNTH;
+  AtspiDeviceX11 *x11_device = ATSPI_DEVICE_X11 (device);
+  AtspiDeviceX11Private *priv = atspi_device_x11_get_instance_private (x11_device);
+  AtspiDeviceCapability caps = ATSPI_DEVICE_CAP_KB_MONITOR | ATSPI_DEVICE_CAP_KB_GRAB | ATSPI_DEVICE_CAP_POINTER_SYNTH;
+
+  if (priv->pointer_monitor_enabled)
+    caps |= ATSPI_DEVICE_CAP_POINTER_MONITOR;
+
+  return caps;
 }
+
+#ifdef HAVE_XRES
+static pid_t
+get_pid_from_window (Display *display, Window window)
+{
+  int pid = -1;
+  XResClientIdSpec client_spec;
+  long client_id_count = 0;
+  XResClientIdValue *client_ids = NULL;
+
+  client_spec.client = window;
+  client_spec.mask = XRES_CLIENT_ID_PID_MASK;
+
+  if (XResQueryClientIds (display, 1, &client_spec,
+                          &client_id_count, &client_ids) == Success)
+    {
+      long i;
+
+      for (i = 0; i < client_id_count; i++)
+        {
+          pid = XResGetClientPid (&client_ids[i]);
+          if (pid != -1)
+            break;
+        }
+
+      XResClientIdsDestroy (client_id_count, client_ids);
+    }
+
+  return pid;
+}
+
+static AtspiAccessible *
+get_accessible_from_pid (pid_t pid)
+{
+  AtspiAccessible *desktop = atspi_get_desktop (0);
+  gint count = atspi_accessible_get_child_count (desktop, NULL);
+  gint i;
+  guint child_pid;
+
+  for (i = 0; i < count; i++)
+    {
+      AtspiAccessible *child = atspi_accessible_get_child_at_index (desktop, i, NULL);
+      if (!child)
+        continue;
+      child_pid = atspi_accessible_get_process_id (child, NULL);
+      if (child_pid == pid)
+        {
+          g_object_unref (desktop);
+          return child;
+        }
+      g_object_unref (child);
+    }
+
+  g_object_unref (desktop);
+  return NULL;
+}
+
+static gboolean
+poll_mouse_moved (AtspiDeviceX11 *x11_device)
+{
+  AtspiDeviceX11Private *priv = atspi_device_x11_get_instance_private (x11_device);
+  int x_return = 0, y_return = 0;
+  int win_x_return, win_y_return;
+  unsigned int mask_return;
+  Window root_return = 0, child_return = 0;
+  Window child;
+  pid_t pid;
+  AtspiAccessible *accessible;
+
+  if (!priv->display)
+    return FALSE;
+
+  XQueryPointer (priv->display, priv->root_window,
+                 &root_return, &child,
+                 &x_return, &y_return,
+                 &win_x_return, &win_y_return, &mask_return);
+  XQueryPointer (priv->display, child,
+                 &root_return, &child_return,
+                 &x_return, &y_return,
+                 &win_x_return, &win_y_return, &mask_return);
+
+  if (x_return == priv->last_mouse_pos.x && y_return == priv->last_mouse_pos.y)
+    return FALSE;
+
+  priv->last_mouse_pos.x = x_return;
+  priv->last_mouse_pos.y = y_return;
+
+  /* Bail out if this position appears to have no window associated with it */
+  if (win_x_return == x_return && win_y_return == y_return)
+    return TRUE;
+
+  pid = get_pid_from_window (priv->display, child);
+  accessible = get_accessible_from_pid (pid);
+  if (accessible)
+    {
+      g_signal_emit_by_name (x11_device, "pointer-moved", accessible, win_x_return, win_y_return);
+      g_object_unref (accessible);
+    }
+  return TRUE;
+}
+
+static gboolean
+poll_mouse_moving (gpointer data)
+{
+  AtspiDeviceX11 *x11_device = ATSPI_DEVICE_X11 (data);
+  AtspiDeviceX11Private *priv = atspi_device_x11_get_instance_private (x11_device);
+
+  if (!priv->pointer_monitor_enabled)
+    return FALSE;
+  else if (poll_mouse_moved (x11_device))
+    return TRUE;
+  else
+    {
+      guint id;
+      id = g_timeout_add (100, poll_mouse_idle, data);
+      g_source_set_name_by_id (id, "[at-spi2-core] poll_mouse_idle");
+      return FALSE;
+    }
+}
+
+static gboolean
+poll_mouse_idle (gpointer data)
+{
+  AtspiDeviceX11 *x11_device = ATSPI_DEVICE_X11 (data);
+  AtspiDeviceX11Private *priv = atspi_device_x11_get_instance_private (x11_device);
+
+  if (!priv->pointer_monitor_enabled)
+    return FALSE;
+  else if (!poll_mouse_moved (x11_device))
+    return TRUE;
+  else
+    {
+      guint id;
+      id = g_timeout_add (20, poll_mouse_moving, data);
+      g_source_set_name_by_id (id, "[at-spi2-core] poll_mouse_moving");
+      return FALSE;
+    }
+}
+
+static void
+enable_pointer_monitor (AtspiDeviceX11 *x11_device)
+{
+  AtspiDeviceX11Private *priv = atspi_device_x11_get_instance_private (x11_device);
+  guint id;
+
+  priv->pointer_monitor_enabled = TRUE;
+  id = g_timeout_add (100, poll_mouse_idle, x11_device);
+  g_source_set_name_by_id (id, "[at-spi2-core] poll_mouse_idle");
+}
+
+static void
+disable_pointer_monitor (AtspiDeviceX11 *x11_device)
+{
+}
+#endif
 
 static AtspiDeviceCapability
 atspi_device_x11_set_capabilities (AtspiDevice *device, AtspiDeviceCapability capabilities)
 {
+#ifdef HAVE_XRES
+  AtspiDeviceX11 *x11_device = ATSPI_DEVICE_X11 (device);
+  AtspiDeviceX11Private *priv = atspi_device_x11_get_instance_private (x11_device);
+
+  if (capabilities & ATSPI_DEVICE_CAP_POINTER_MONITOR && !priv->pointer_monitor_enabled)
+    enable_pointer_monitor (x11_device);
+  else if (!(capabilities & ATSPI_DEVICE_CAP_POINTER_MONITOR) && priv->pointer_monitor_enabled)
+    disable_pointer_monitor (x11_device);
+#else
+  if (capabilities & ATSPI_DEVICE_CAP_POINTER_MONITOR)
+    g_warning ("Attempt to enable ATSPI_DEVICE_CAP_POINTER_MONITOR, but at-spi2-core was built without libXRes");
+#endif
+
   return atspi_device_x11_get_capabilities (device);
 }
 

@@ -59,9 +59,12 @@ atspi_headers = [
   'atspi-value.h',
 ]
 
+atspi_deps = [ libdbus_dep, dbus_glib_dep, gobject_dep, gio_dep, dbind_dep, x11_deps, ]
+
 if x11_dep.found()
   atspi_sources += ['atspi-device-x11.c']
   atspi_headers += ['atspi-device-x11.h']
+  atspi_deps += [ xres_dep ]
 endif
 
 if not dbus_glib_dep.found()
@@ -103,7 +106,7 @@ atspi = library('atspi', atspi_sources + atspi_enums + atspi_marshals,
                        version: soversion,
                        soversion: soversion.split('.')[0],
                        include_directories: [ root_inc, registryd_inc ],
-                       dependencies: [ libdbus_dep, dbus_glib_dep, gobject_dep, gio_dep, dbind_dep, x11_deps, ],
+                       dependencies: atspi_deps,
                        install: true)
 
 atspi_dep = declare_dependency(link_with: atspi,
@@ -155,3 +158,4 @@ pkgconfig.generate(
   subdirs: 'at-spi-2.0',
   filebase: 'atspi-2',
 )
+

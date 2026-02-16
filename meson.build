@@ -101,6 +101,7 @@ endforeach
 
 root_inc = include_directories('.')
 atk_inc = include_directories('atk')
+atspi_inc = include_directories('atspi')
 registryd_inc = include_directories('registryd')
 
 atspi_prefix = get_option('prefix')
@@ -164,6 +165,9 @@ if x11_dep.found()
   endif
   xinput_dep = dependency('xi')
   x11_deps += xinput_dep
+
+  xres_dep = dependency('xres', required: false)
+  at_spi_conf.set('HAVE_XRES', xres_dep.found())
 endif
 
 # Alignments
@@ -197,6 +201,8 @@ if not get_option('atk_only')
 endif
 
 xgettext = find_program('xgettext', required : false)
+
+at_spi_conf.set_quoted('LIBDIR', join_paths(get_option('prefix'), get_option('libdir')))
 
 configure_file(output: 'config.h', configuration: at_spi_conf)
 
