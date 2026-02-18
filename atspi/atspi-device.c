@@ -166,7 +166,7 @@ atspi_device_class_init (AtspiDeviceClass *klass)
    * @keystring: the text corresponding to the keypress.
    *
    * This signal is emitted when a key is pressed and
-   * ATSPI_DEVICE_CAP_KB_MONITOR is active for the device.
+   * ATSPI_DEVICE_CAP_KEYBOARD_MONITOR is active for the device.
    */
   device_signals[KEY_PRESSED] =
       g_signal_new ("key-pressed",
@@ -185,7 +185,7 @@ atspi_device_class_init (AtspiDeviceClass *klass)
    * @keystring: the text corresponding to the keypress.
    *
    * This signal is emitted when a key is released and
-   * ATSPI_DEVICE_CAP_KB_MONITOR is active for the device.
+   * ATSPI_DEVICE_CAP_KEYBOARD_MONITOR is active for the device.
    */
   device_signals[KEY_RELEASED] =
       g_signal_new ("key-released",

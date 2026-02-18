@@ -1711,9 +1711,9 @@ G_STATIC_ASSERT(ATSPI_ROLE_COUNT == ATSPI_ROLE_LAST_DEFINED + 1);
 
   /**
    * AtspiDeviceCapability:
-   * @ATSPI_DEVICE_CAP_KB_MONITOR: The capability to monitor keystrokes.
-   * @ATSPI_DEVICE_CAP_KB_SYNTH: The capability to synthesize keystrokes.
-   * @ATSPI_DEVICE_CAP_KB_GRAB: The capability to set key grabs.
+   * @ATSPI_DEVICE_CAP_KEYBOARD_MONITOR: The capability to monitor keystrokes.
+   * @ATSPI_DEVICE_CAP_KEYBOARD_SYNTH: The capability to synthesize keystrokes.
+   * @ATSPI_DEVICE_CAP_KEYBOARD_GRAB: The capability to set key grabs.
    * @ATSPI_DEVICE_CAP_POINTER_MONITOR: The capability to monitor the location of the pointer.
    * @ATSPI_DEVICE_CAP_POINTER_SYNTH: The capability to synthesize pointer motion.
    * @ATSPI_DEVICE_CAP_TOUCH_MONITOR: The capability to monitor touch presses.
@@ -1725,9 +1725,9 @@ G_STATIC_ASSERT(ATSPI_ROLE_COUNT == ATSPI_ROLE_LAST_DEFINED + 1);
    */
   typedef enum
   {
-    ATSPI_DEVICE_CAP_KB_MONITOR = (1 << 0),
-    ATSPI_DEVICE_CAP_KB_SYNTH = (1 << 1),
-    ATSPI_DEVICE_CAP_KB_GRAB = (1 << 2),
+    ATSPI_DEVICE_CAP_KEYBOARD_MONITOR = (1 << 0),
+    ATSPI_DEVICE_CAP_KEYBOARD_SYNTH = (1 << 1),
+    ATSPI_DEVICE_CAP_KEYBOARD_GRAB = (1 << 2),
     ATSPI_DEVICE_CAP_POINTER_MONITOR = (1 << 3),
     ATSPI_DEVICE_CAP_POINTER_SYNTH = (1 << 4),
     ATSPI_DEVICE_CAP_TOUCH_MONITOR = (1 << 5),
