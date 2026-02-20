@@ -1028,8 +1028,17 @@ enable_pointer_monitor (AtspiDeviceX11 *x11_device)
 {
   AtspiDeviceX11Private *priv = atspi_device_x11_get_instance_private (x11_device);
   guint id;
+  Window root_return, child_return;
+  int win_x_return, win_y_return;
+  unsigned int mask_return;
 
   priv->pointer_monitor_enabled = TRUE;
+
+  XQueryPointer (priv->display, priv->root_window,
+                 &root_return, &child_return,
+                 &priv->last_mouse_pos.x, &priv->last_mouse_pos.y,
+                 &win_x_return, &win_y_return, &mask_return);
+
   id = g_timeout_add (100, poll_mouse_idle, x11_device);
   g_source_set_name_by_id (id, "[at-spi2-core] poll_mouse_idle");
 }
