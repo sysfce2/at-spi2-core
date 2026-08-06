@@ -102,6 +102,9 @@ atspi_application_finalize (GObject *object)
   g_free (application->toolkit_version);
   g_free (application->atspi_version);
 
+  if (application->get_items_pending)
+    dbus_pending_call_cancel (application->get_items_pending);
+
   G_OBJECT_CLASS (atspi_application_parent_class)->finalize (object);
 }
 

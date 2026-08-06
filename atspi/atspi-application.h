@@ -53,6 +53,8 @@ struct _AtspiApplication
   gchar *atspi_version;
   struct timeval time_added;
   pid_t pid;
+  DBusPendingCall *get_items_pending;
+  gboolean get_items_finished;
 };
 
 typedef struct _AtspiApplicationClass AtspiApplicationClass;

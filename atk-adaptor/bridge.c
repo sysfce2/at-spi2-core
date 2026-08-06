@@ -1012,6 +1012,8 @@ spi_atk_activate ()
       if (spi_global_app_data->bus)
         droute_path_register (treepath, spi_global_app_data->bus);
     }
+
+  spi_cache_emit_ready ();
 }
 
 static gboolean

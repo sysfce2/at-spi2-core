@@ -370,4 +370,17 @@ spi_initialize_cache (DRoutePath *path)
                     (GCallback) emit_cache_remove, NULL);
 };
 
+void
+spi_cache_emit_ready ()
+{
+  if (spi_global_app_data->bus)
+    {
+      DBusMessage *message;
+      message = dbus_message_new_signal (SPI_CACHE_OBJECT_PATH,
+                                         ATSPI_DBUS_INTERFACE_CACHE,
+                                         "Ready");
+      dbus_connection_send (spi_global_app_data->bus, message, NULL);
+      dbus_message_unref (message);
+    }
+}
 /*END------------------------------------------------------------------------*/

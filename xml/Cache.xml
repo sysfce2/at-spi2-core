@@ -17,9 +17,9 @@
       method, and then update them dynamically from the AddAccessible and RemoveAccessible
       signals.
 
-      FIXME: Does GetItems only get called if an application implements
-      GetApplicationBusAddress?  GTK4 doesn't implement that, but it implements GetItems -
-      does that ever get called?
+      For version 2 and later of the interface, an application will emit the
+      Ready signal once the cache is initialized. This signals to the
+      client that it is now safe to call GetItems.
   -->
   <interface name="org.a11y.atspi.Cache">
 
@@ -100,5 +100,11 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QSpiObjectReference"/>
     </signal>
 
+    <!--
+        Ready: to be emitted when the cache is ready to query.
+
+        Added in version 2.
+    -->
+    <signal name="Ready"/>
   </interface>
 </node>

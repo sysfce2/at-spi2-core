@@ -1830,7 +1830,7 @@ typedef enum
  *
  * Since: 2.59
  */
-#define ATSPI_CACHE_VERSION 1
+#define ATSPI_CACHE_VERSION 2
 /**
  * ATSPI_COLLECTION_VERSION:
  *
