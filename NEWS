@@ -1,3 +1,12 @@
+What's new in at-spi2-core 2.61.90:
+
+* libatspi: Fix transfer annotation on atspi_document_get_text_selections
+
+* Add a Ready signal to org.a11y.atspi.Cache.
+
+* Add ATSPI_STATE_DEFAULT as an alias for ATSPI_STATE_IS_DEFAULT, so that
+  StateChanged signals for the equivalent atk state are handled.
+
 What's new in at-spi2-core 2.61.1:
 
 * atk-bridge: Attempt to fix a crash in get_registered_event_listeners
